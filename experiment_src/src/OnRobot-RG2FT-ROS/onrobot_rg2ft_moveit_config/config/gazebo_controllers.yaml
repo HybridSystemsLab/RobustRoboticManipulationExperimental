@@ -1,0 +1,15 @@
+# Publish joint_states
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50
+
+gripper_action_controller:
+  type: position_controllers/GripperActionController
+  joint: finger_joint
+  action_monitor_rate: 10
+
+gazebo_ros_control:
+  pid_gains:
+    # gripper
+    finger_joint: {p: 10,  d: 0.1, i: 1, i_clamp: 1}
+    left_outer_knuckle_joint: {p: 20,  d: 0.1, i: 1, i_clamp: 1}
