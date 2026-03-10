@@ -59,7 +59,7 @@ hold on;
 grid on; 
 box on; 
 set(gca,'FontName','Times New Roman');
-plot_mode_segments(pos_error_B, x2m_B, ctrl_B, [1 0 0], [0 0 1], t, ctrl_B); % Pass t and ctrl_B or grip_mode_log if available
+plot_mode_segments(pos_error_B, x2m_B, ctrl_B, [1 0 0], [0 0 1], t, ctrl_B);
 
 plot(x1_B(1), x2_B(1), 'k.', 'MarkerSize',16); 
 text(x1_B(1) + .03, x2_B(1), 'z^0', "FontSize", 18);

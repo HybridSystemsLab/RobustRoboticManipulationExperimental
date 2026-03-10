@@ -11,18 +11,13 @@ import rclpy
 import rclpy.node
 from onrobot_rg2ft_control.OnRobotRG2FT import OnRobotRG2FT
 from onrobot_rg2ft_msgs.msg import RG2FTCommand, RG2FTState
-# from geometry_msgs.msg import Wrench, PoseStamped, PoseArray, Pose
 import threading
 from sensor_msgs.msg import JointState
-# from control_msgs.msg import JointTrajectoryControllerState
 from moveit_msgs.srv import GetMotionPlan
-# from moveit_msgs.msg import JointConstraint, MotionPlanResponse
 from sensor_msgs.msg import JointState
 import requests
-# import move_solver as ms
 
-OUTSOURCE_IP = "127.0.0.1" # should not need with new computer, adds latency for requests
-# implement move_solver
+OUTSOURCE_IP = "127.0.0.1" 
 
 class PNS_Driver:
     def __init__(self, node, ip, port):
@@ -33,10 +28,6 @@ class PNS_Driver:
         self.fd = 0
         self.done = True
         self.shutdown = False
-
-        # self.enable_drift_comp = node.declare_parameter("enable_drift_comp", True).get_parameter_value().bool_value
-        # self.enable_online_rebaselining = node.declare_parameter("enable_online_rebaselining", True).get_parameter_value().bool_value
-        # self.rebaselining_alpha = node.declare_parameter("rebaselining_alpha", 1e-3).get_parameter_value().double_value
 
         self.thread = threading.Thread(target=self.loop)
         self.thread.start()
@@ -59,10 +50,10 @@ class PNS_Driver:
         LOOP_FREQ = 100 # Hz
         PERIOD = 1.0 / LOOP_FREQ
         force_avg = 0
-        # movement = 200 # for berry -> should not need this either, test without
+        # movement = 200 # for berry
         movement = 300 # for ball
-        q = 0
-        desired_force = 0
+        q = 0 # lambda state variable for gripper control
+        desired_force = 0 # ONLY for beginning the loop
         last_prox = 1000
 
         MIN_HOLD_TIME = 300 # hold for 30 minutes -> testing temperature sensor drift
@@ -80,7 +71,6 @@ class PNS_Driver:
         LOOSEN_SLOW = -1
         LOOSEN = -2
 
-        # proximity redundancy -> should not need this anymore, test without
         FAR = 500
         CLOSE = 300 
 
@@ -98,6 +88,7 @@ class PNS_Driver:
         DELTA2 = 0.0
         DELTA1 = 0.0
 
+        # speeds are optional, they just determine how fast the gripper moves when grasping. not necessary for experiment
         SPEED_FAST = 1.0
         SPEED_NORMAL = 0.05 * 2
         SPEED_SLOW = 0.005
@@ -165,9 +156,6 @@ class PNS_Driver:
             ProxR = mean(prox_r_range)
             width = mean(width_range)
 
-            # if cmd.target_width == 0:
-            #     cmd.target_width = int(max(0, min(65535, round(width))))
-
             ProxAvg = (ProxL + ProxR) / 2 # divide by two due to width between two fingers (find midpoint)
 
             if mean([state.proximity_value_l, state.proximity_value_r]) - last_prox > CLOSE:
@@ -180,14 +168,6 @@ class PNS_Driver:
             # Raw force readings
             l_force_raw = abs(state.fz_l)
             r_force_raw = abs(state.fz_r)
-
-            # if calibrated and self.enable_drift_comp:
-            #     loops_since_baseline = max(0, loop_counter - baseline_loop_counter)
-            #     l_force = l_force_raw - l_force_bias - l_force_drift * loops_since_baseline
-            #     r_force = r_force_raw - r_force_bias - r_force_drift * loops_since_baseline
-            # else:
-            #     l_force = l_force_raw
-            #     r_force = r_force_raw
 
             l_force = l_force_raw - l_force_bias - l_force_drift * loop_counter
             r_force = r_force_raw - r_force_bias - r_force_drift * loop_counter
@@ -209,14 +189,9 @@ class PNS_Driver:
             else:
                 if ProxAvg > FAR and force_avg <= desired_force - desired_force * SLOW_FORCE_BOUND - DELTA2:
                     q = TIGHTEN_FAST
-                    # contact = False
                 elif ProxAvg < FAR and ProxAvg > CLOSE and force_avg <= desired_force - desired_force * SLOW_FORCE_BOUND - DELTA2:
                     q = TIGHTEN_FAST
-                    # contact = False
                 else:
-                    # contact = True
-                    # record current width
-                    # diameter_approx = state.actual_gripper_width
                     if (q == TIGHTEN or q == TIGHTEN_SLOW or q == TIGHTEN_FAST) and (force_error <= (DELTA1)):
                         reached_hold_time = time.time()
                         q = HOLD
@@ -233,7 +208,7 @@ class PNS_Driver:
         
                 if q == HOLD:
                     pass
-                elif q == TIGHTEN:  # move smaller
+                elif q == TIGHTEN:
                     tmp_width -= SPEED_NORMAL
                 elif q == LOOSEN:
                     tmp_width += SPEED_NORMAL
@@ -294,24 +269,13 @@ class PNS_Driver:
 
                     l_force_drift = (mean(f_l_arr) - l_force_bias) / ((CALIBRATION_TIME + PERIOD * MOVING_AVG_LEN_FORCE) * LOOP_FREQ)
                     r_force_drift = (mean(f_r_arr) - r_force_bias) / ((CALIBRATION_TIME + PERIOD * MOVING_AVG_LEN_FORCE) * LOOP_FREQ)
-                    # baseline_loop_counter = loop_counter
                     self.node.get_logger().info(f"Force calibration complete! l_force_drift: {l_force_drift:.6f} per loop, r_force_drift: {r_force_drift:.6f} per loop\n Bias left: {l_force_bias:.6f}, Bias right: {r_force_bias:.6f}\n")
                     calibrated = True
-
-            # if self.enable_drift_comp and self.enable_online_rebaselining:
-            #     no_contact = desired_force == 0 and (ProxAvg > FAR or cmd.target_width >= OPEN_WIDTH - OPEN_HOLD_TOLERANCE)
-            #     if no_contact and calibrated:
-            #         alpha = max(0.0, min(1.0, self.rebaselining_alpha))
-            #         l_force_bias = (1 - alpha) * l_force_bias + alpha * l_force_raw
-            #         r_force_bias = (1 - alpha) * r_force_bias + alpha * r_force_raw
-            #         baseline_loop_counter = loop_counter
 
             last_target = tmp_width
 
             if not self.done and desired_force == self.fd and (time.time() - reached_hold_time > MIN_HOLD_TIME or time.time() - start_time > MAX_GRIP_TIME or desired_force == 0):
                 self.done = True
-            # else:
-            #     self.node.get_logger().info(f"\nTime left: {MAX_GRIP_TIME - (time.time() - start_time):.2f}\n")
 
             duration = time.time() - loop_start_time
             if duration < PERIOD:
@@ -402,7 +366,6 @@ class CmdMove(object):
             if response.status_code == 200:
                 self.node.get_logger().info(f"{response.text}")
                 joints = response.json()["joints"]
-                # return self.dance(joints)
                 return joints
             else:
                 self.node.get_logger().warn(
@@ -472,7 +435,6 @@ if __name__ == "__main__":
                 log_file.write(f"{time.time()},{MOVE},{','.join(['0']*6)},0\n")
             else:
                 log_file.write(f"{time.time()},{MOVE},{','.join([str(x) for x in p])},{','.join([str(x) for x in r])},0\n")
-            # cm.move(p, r)
             while i not in joint_actions:
                 time.sleep(0.1)
             if joint_actions[i]:
@@ -493,4 +455,3 @@ if __name__ == "__main__":
     node.get_logger().info(f"Data saved to data/hybrid_state_{f_idx}.csv")
     driver.stop()
     node.get_logger().info("It worked!")
-    # rclpy.spin(node)

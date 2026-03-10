@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+""" move_solver.py: solves for the joint angles of the elfin e03 robot arm given a target end-effector position and orientation using an iterative Jacobian-based method. For computation, this script is run locally on the host machine and then the resulting joint angles are sent to the robot via a REST API call to the hybrid.py script running on the robot's onboard computer. """
+
 import os.path
 import matplotlib.pyplot as plt
 import numpy as np
