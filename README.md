@@ -20,11 +20,11 @@ The code is designed for and tested on the specific hardware and software setup 
 *Note: Videos files are too large to view in GitHub's website and must be downloaded.*
 
 ### Changing Center of Gravity (CoG)
-![Rotating CoG Experiment 1](videos/rotate.MP4)
+[Rotating CoG Experiment 1](https://drive.google.com/file/d/1iHIIASe5I5qWnXJxHtltv5PGHDzhRiH-/view?usp=sharing)
 
-![Changing CoG Experiment 2](videos/rotate_2.MP4)
+[Changing CoG Experiment 2](https://drive.google.com/file/d/1IVOIhPyYLTiMze2lAZMM3zghMNXxqLGW/view?usp=sharing)
 
 ### Changing Stiffness
-![Changing Stiffness Experiment 1](videos/squeeze.MP4)
+[Changing Stiffness Experiment 1](https://drive.google.com/file/d/1HjKtEN9-cCsiI7btPJtSzgEGy33NL3c2/view?usp=sharing)
 
-![Changing Stiffness Experiment 2](videos/squeeze_2.MP4)
+[Changing Stiffness Experiment 2](https://drive.google.com/file/d/1eWVgjE-9xSU7n4T8u47oE871gETyv_ZZ/view?usp=sharing)
