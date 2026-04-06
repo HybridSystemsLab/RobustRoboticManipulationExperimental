@@ -17,7 +17,7 @@ The experimental code can be found in the `experimental_src` folder. It includes
 The code is designed for and tested on the specific hardware and software setup used in the experiments, so it may not be directly applicable to other setups without modification. The experimental code is modified slightly between each experiment. The nominal force regulation experiment uses just the hybrid controller, the changing center of gravity experiment uses the hybrid controller and a manual rotation of the end-effector, the changing stiffness uses the hybrid controller and a manual change of the stiffness of the environment, and the long term stability experiment uses just the hybrid controller with an extended time period. Each experiment follows the descriptions in the paper, so please refer to the paper for more details on the experimental setup and procedure.
 
 ## Experiments
-*Note: Videos files are too large to view in GitHub's website and must be downloaded.*
+*Note: Videos files are too large to view in GitHub's website and are linked to Google Drive.*
 
 ### Changing Center of Gravity (CoG)
 [Rotating CoG Experiment 1](https://drive.google.com/file/d/1iHIIASe5I5qWnXJxHtltv5PGHDzhRiH-/view?usp=sharing)
